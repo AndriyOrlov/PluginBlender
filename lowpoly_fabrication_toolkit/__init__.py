@@ -39,7 +39,7 @@ from .core.holes import circle_hole, rect_hole, vent_grid
 from .core.layout_nesting import nest_panels
 from .core.material_profiles import MATERIAL_PROFILES, get_profile
 from .core.mesh_analysis import analyze_object
-from .core.preview_geometry import create_layout_preview, create_thickness_preview
+from .core.preview_geometry import create_layout_preview, create_manufacturing_copy, create_thickness_preview
 from .core.supports import suggest_supports, support_panels
 from .core.trimming import apply_clearance
 from .core.validator import validate_state
@@ -183,6 +183,25 @@ class LFT_OT_clean_mesh(Operator):
             obj.data.validate(clean_customdata=False)
             obj.data.update()
             self.report({"INFO"}, "Mesh cleaned")
+        except Exception as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+        return {"FINISHED"}
+
+
+class LFT_OT_make_manufacturing_copy(Operator):
+    bl_idname = "lft.make_manufacturing_copy"
+    bl_label = "Create Manufacturing Copy"
+
+    def execute(self, context):
+        try:
+            obj = active_mesh_object(bpy)
+            ensure_object_mode(bpy)
+            copy = create_manufacturing_copy(bpy, obj)
+            bpy.ops.object.select_all(action="DESELECT")
+            copy.select_set(True)
+            context.view_layer.objects.active = copy
+            self.report({"INFO"}, f"Created {copy.name}")
         except Exception as exc:
             self.report({"ERROR"}, str(exc))
             return {"CANCELLED"}
@@ -455,6 +474,7 @@ from .ui.panel_pack import LFT_PT_pack
 classes = (
     LFT_Settings,
     LFT_OT_analyze,
+    LFT_OT_make_manufacturing_copy,
     LFT_OT_clean_mesh,
     LFT_OT_assign_face_type,
     LFT_OT_assign_edge_data,

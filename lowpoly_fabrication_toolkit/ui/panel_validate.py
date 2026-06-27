@@ -10,6 +10,7 @@ class LFT_PT_validate(LFTPanel, bpy.types.Panel):
 
     def draw(self, context):
         s = context.scene.lft_settings
+        self.layout.operator("lft.make_manufacturing_copy")
         self.layout.operator("lft.clean_mesh")
         self.layout.operator("lft.analyze_mesh")
         self.layout.operator("lft.validate")

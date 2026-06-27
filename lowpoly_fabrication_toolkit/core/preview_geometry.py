@@ -57,6 +57,19 @@ def create_layout_preview(bpy, panels, preview_scale: float = 0.01):
     return objects
 
 
+def create_manufacturing_copy(bpy, obj):
+    coll = get_collection(bpy, "LFT_Generated")
+    copy = obj.copy()
+    copy.data = obj.data.copy()
+    copy.name = f"LFT_Manufacturing_{obj.name}"
+    coll.objects.link(copy)
+    for collection in copy.users_collection:
+        if collection != coll:
+            collection.objects.unlink(copy)
+    copy["lft_source_object"] = obj.name
+    return copy
+
+
 def _hole_preview_object(bpy, panel_id: str, index: int, hole: dict, scale: float):
     if hole.get("type") == "CIRCLE":
         cx = hole["x"] * scale
