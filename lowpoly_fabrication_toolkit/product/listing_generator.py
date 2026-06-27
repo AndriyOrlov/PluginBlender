@@ -97,6 +97,15 @@ h3 {{ margin: 0 0 4px; font-size: 15px; }}
 """
 
 
+def stage_diagram_svgs(panels) -> list[tuple[str, str]]:
+    files = []
+    for index, stage in enumerate(_assembly_stages(panels), 1):
+        slug = stage["title"].lower().replace(",", "").replace(" ", "_")
+        svg = _stage_preview_svg(stage["parts"]).replace('class="stage-map"', 'class="stage-map" width="1200"')
+        files.append((f"stage_{index:02d}_{slug}.svg", svg))
+    return files
+
+
 def _part_card(index: int, panel) -> str:
     min_x, min_y, max_x, max_y = polygon_bounds(panel.points)
     w = max(max_x - min_x, 1)
