@@ -14,5 +14,6 @@ class LFT_PT_materials(LFTPanel, bpy.types.Panel):
         layout.prop(s, "sheet_height")
         layout.prop(s, "sheet_margin")
         layout.prop(s, "sheet_spacing")
+        layout.prop(s, "unit_scale_mm")
         layout.prop(s, "kerf")
         layout.prop(s, "clearance")

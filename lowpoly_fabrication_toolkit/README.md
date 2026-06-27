@@ -17,9 +17,10 @@ Blender 4.x add-on for turning low-poly meshes into fabrication layouts.
 3. In Edit Mode, select faces and use `Face Tools` to assign face types and material.
 4. Select edges and use `Edge Tools` to assign join type, trim mode, clearance and kerf.
 5. Use `Holes & Vents` to add simple circular, rectangular, or vent-grid holes.
-6. Use `Preview > Thickness Preview`.
-7. Use `Layout > Generate 2D Layout`.
-8. Use `Product Pack > Generate Product Pack`.
+6. Set `Materials > Unit Scale mm`; default `100` means one Blender unit exports as 100 mm.
+7. Use `Preview > Thickness Preview`.
+8. Use `Layout > Generate 2D Layout`.
+9. Use `Product Pack > Generate Product Pack`.
 
 Exports are written to `//lft_output` by default:
 

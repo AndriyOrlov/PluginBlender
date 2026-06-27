@@ -3,7 +3,7 @@ from __future__ import annotations
 bl_info = {
     "name": "LowPoly Fabrication Toolkit",
     "author": "Codex",
-    "version": (0, 1, 0),
+    "version": (0, 1, 1),
     "blender": (4, 0, 0),
     "location": "View3D > Sidebar > LFT",
     "description": "Turns low-poly meshes into panel fabrication layouts.",
@@ -15,7 +15,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 import bpy
-from bpy.props import BoolProperty, EnumProperty, FloatProperty, IntProperty, PointerProperty, StringProperty
+from bpy.props import BoolProperty, EnumProperty, FloatProperty, PointerProperty, StringProperty
 from bpy.types import Operator, PropertyGroup
 
 from .core.connectors import connector_panels
@@ -70,13 +70,23 @@ def selected_faces_and_edges(obj):
     return faces, edges
 
 
-def build_panels(obj, state):
+def scale_points(points, scale):
+    return [(x * scale, y * scale) for x, y in points]
+
+
+def layout_height(panels, sheet):
+    if not panels:
+        return sheet.height
+    return max(sheet.height, max(polygon_bounds(p.points)[3] for p in panels) + sheet.margin)
+
+
+def build_panels(obj, state, unit_scale_mm=1.0):
     panels = []
     for poly in obj.data.polygons:
         face_data = FaceFabricationData(**state.get("faces", {}).get(str(poly.index), {}))
         material = face_data.material or state["settings"]["material"]
         profile = get_profile(material)
-        points = face_points_2d(obj, poly.index)
+        points = scale_points(face_points_2d(obj, poly.index), unit_scale_mm)
         clearance = profile.default_clearance
         kerf = profile.kerf
         for a, b in poly.edge_keys:
@@ -113,6 +123,7 @@ class LFT_Settings(PropertyGroup):
     sheet_height: FloatProperty(name="Sheet H", default=400, min=1)
     sheet_margin: FloatProperty(name="Margin", default=10, min=0)
     sheet_spacing: FloatProperty(name="Spacing", default=5, min=0)
+    unit_scale_mm: FloatProperty(name="Unit Scale mm", default=100.0, min=0.001, description="Millimeters per Blender unit")
     face_type: EnumProperty(name="Face Type", items=enum_items(FACE_TYPES), default="SOLID")
     join_type: EnumProperty(name="Join Type", items=enum_items(JOIN_TYPES), default="BUTT")
     trim_mode: EnumProperty(name="Trim", items=enum_items(TRIM_MODES), default="NO_TRIM")
@@ -221,7 +232,7 @@ class LFT_OT_add_hole(Operator):
                 faces = [p.index for p in list(obj.data.polygons)[:1]]
             state = load_state(obj)
             for idx in faces:
-                points = face_points_2d(obj, idx)
+                points = scale_points(face_points_2d(obj, idx), settings.unit_scale_mm)
                 min_x, min_y, max_x, max_y = polygon_bounds(points)
                 cx, cy = (min_x + max_x) / 2, (min_y + max_y) / 2
                 if settings.hole_type == "CIRCLE":
@@ -271,11 +282,12 @@ class LFT_OT_export_layout(Operator):
             settings = context.scene.lft_settings
             state = load_state(obj)
             state["settings"]["material"] = settings.material_profile
+            state["settings"]["unit_scale_mm"] = settings.unit_scale_mm
             sheet = LayoutSheet(settings.sheet_width, settings.sheet_height, settings.sheet_margin, settings.sheet_spacing)
-            panels = nest_panels(build_panels(obj, state), sheet)
+            panels = nest_panels(build_panels(obj, state, settings.unit_scale_mm), sheet)
             out = Path(bpy.path.abspath(settings.output_dir))
             out.mkdir(parents=True, exist_ok=True)
-            export_svg(out / "layout.svg", panels, sheet.width, max(sheet.height, sheet.margin * 2 + len(panels) * sheet.spacing))
+            export_svg(out / "layout.svg", panels, sheet.width, layout_height(panels, sheet))
             export_dxf(out / "layout.dxf", panels)
             export_bom_csv(out / "BOM.csv", panels)
             export_project_json(out / "project.json", state, panels)
@@ -298,7 +310,8 @@ class LFT_OT_validate(Operator):
             state = load_state(obj)
             analyze_object(obj)
             state = load_state(obj)
-            panels = build_panels(obj, state)
+            unit_scale = context.scene.lft_settings.unit_scale_mm
+            panels = build_panels(obj, state, unit_scale)
             issues = validate_state(obj, panels, state)
             context.scene.lft_settings.validator_summary = f"{len(issues)} issue(s)"
             obj["lft_validator_issues"] = json.dumps([asdict(i) for i in issues], indent=2)
