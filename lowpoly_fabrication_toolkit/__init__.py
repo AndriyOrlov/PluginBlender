@@ -45,7 +45,7 @@ from .core.trimming import apply_clearance
 from .core.validator import validate_state
 from .integrations.prompt_optimizer import optimize_prompt
 from .integrations.tripo_client import TripoClient, TripoClientConfig
-from .product.listing_generator import listing
+from .product.listing_generator import assembly_guide, listing
 from .product.render_pack import render_placeholder_files
 from .product.zip_builder import build_zip
 from .utils.blender_utils import active_mesh_object, ensure_object_mode
@@ -443,14 +443,19 @@ class LFT_OT_product_pack(Operator):
             out.mkdir(parents=True, exist_ok=True)
             files = [out / "template.pdf", out / "layout.svg", out / "layout.dxf", out / "BOM.csv", out / "project.json"]
             files += render_placeholder_files(out)
+            obj = context.object if context.object and context.object.type == "MESH" else None
+            panels = build_panels(obj, load_state(obj), settings.unit_scale_mm) if obj else []
+            issues = json.loads(obj.get("lft_validator_issues", "[]")) if obj else []
             pack_settings = ProductPackSettings(title=settings.pack_title)
             listing_path = out / "listing.json"
             listing_path.write_text(json.dumps(listing(pack_settings, [settings.material_profile], [p.name for p in files]), indent=2), encoding="utf-8")
+            guide = out / "assembly_guide.txt"
+            guide.write_text(assembly_guide(settings.pack_title, panels, len(issues)), encoding="utf-8")
             readme = out / "README.txt"
             readme.write_text("LowPoly Fabrication Toolkit export. Cut red outlines, engrave labels, dry-fit before glue.\n", encoding="utf-8")
             license_file = out / "license.txt"
             license_file.write_text("Add your license terms here.\n", encoding="utf-8")
-            files += [listing_path, readme, license_file]
+            files += [listing_path, guide, readme, license_file]
             build_zip(out / "product_pack.zip", files)
             self.report({"INFO"}, f"Product pack: {out / 'product_pack.zip'}")
         except Exception as exc:
