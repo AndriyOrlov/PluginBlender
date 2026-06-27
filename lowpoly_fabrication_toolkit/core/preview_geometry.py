@@ -31,3 +31,19 @@ def create_thickness_preview(bpy, obj, thickness: float):
     mod.offset = -1
     copy.display_type = "TEXTURED"
     return copy
+
+
+def create_layout_preview(bpy, panels, preview_scale: float = 0.01):
+    clear_collection(bpy, "LFT_2D_Layout")
+    coll = get_collection(bpy, "LFT_2D_Layout")
+    objects = []
+    for panel in panels:
+        verts = [(x * preview_scale, y * preview_scale, 0.0) for x, y in panel.points]
+        edges = [(i, (i + 1) % len(verts)) for i in range(len(verts))]
+        mesh = bpy.data.meshes.new(f"{panel.panel_id}_mesh")
+        mesh.from_pydata(verts, edges, [])
+        mesh.update()
+        obj = bpy.data.objects.new(panel.panel_id, mesh)
+        coll.objects.link(obj)
+        objects.append(obj)
+    return objects

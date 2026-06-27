@@ -39,7 +39,7 @@ from .core.holes import circle_hole, rect_hole, vent_grid
 from .core.layout_nesting import nest_panels
 from .core.material_profiles import MATERIAL_PROFILES, get_profile
 from .core.mesh_analysis import analyze_object
-from .core.preview_geometry import create_thickness_preview
+from .core.preview_geometry import create_layout_preview, create_thickness_preview
 from .core.supports import suggest_supports, support_panels
 from .core.trimming import apply_clearance
 from .core.validator import validate_state
@@ -291,6 +291,7 @@ class LFT_OT_export_layout(Operator):
             export_dxf(out / "layout.dxf", panels)
             export_bom_csv(out / "BOM.csv", panels)
             export_project_json(out / "project.json", state, panels)
+            create_layout_preview(bpy, panels)
             save_state(obj, state)
             self.report({"INFO"}, f"Exported layout to {out}")
         except Exception as exc:
