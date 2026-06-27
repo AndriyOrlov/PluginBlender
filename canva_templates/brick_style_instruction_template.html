@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>LowPoly Fabrication Toolkit - Assembly Manual Template</title>
+<style>
+@page { size: 16in 9in; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #111; background: #e8e8e8; }
+.page { width: 16in; height: 9in; page-break-after: always; background: #fff; position: relative; overflow: hidden; padding: .48in; }
+.bar { position: absolute; left: 0; right: 0; top: 0; height: .18in; background: linear-gradient(90deg,#d71920 0 25%,#ffd500 25% 50%,#0066b3 50% 75%,#111 75%); }
+.brand { position: absolute; left: .48in; top: .28in; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.code { position: absolute; right: .48in; top: .25in; border: 3px solid #111; border-radius: 8px; padding: .06in .14in; font-weight: 900; }
+h1 { margin: .72in 0 .12in; font-size: 58px; line-height: .95; letter-spacing: 0; }
+h2 { margin: .38in 0 .18in; font-size: 34px; line-height: 1; }
+h3 { margin: 0 0 .1in; font-size: 19px; }
+.muted { color: #555; }
+.grid { display: grid; gap: .18in; }
+.cols2 { grid-template-columns: 1fr 1fr; }
+.cols3 { grid-template-columns: repeat(3,1fr); }
+.cols4 { grid-template-columns: repeat(4,1fr); }
+.card { border: 3px solid #111; border-radius: 10px; padding: .16in; background: #fff; min-height: .7in; }
+.yellow { background: #ffd500; }
+.red { background: #d71920; color: #fff; }
+.blue { background: #0066b3; color: #fff; }
+.black { background: #111; color: #fff; }
+.hero { height: 4.7in; border: 4px dashed #999; display: grid; place-items: center; font-size: 28px; font-weight: 900; color: #777; background: #f7f7f7; }
+.diagram { height: 5.4in; border: 4px solid #111; border-radius: 10px; display: grid; place-items: center; color: #777; font-size: 28px; font-weight: 900; background: repeating-linear-gradient(45deg,#fafafa,#fafafa 12px,#f0f0f0 12px,#f0f0f0 24px); }
+.small-diagram { height: 1.15in; border: 3px dashed #999; display: grid; place-items: center; color: #777; font-size: 13px; font-weight: 800; background: #fafafa; }
+.step-num { width: .72in; height: .72in; border-radius: 50%; background: #ffd500; border: 4px solid #111; display: grid; place-items: center; font-size: 34px; font-weight: 900; }
+.step-head { display: flex; align-items: center; gap: .18in; margin-top: .55in; margin-bottom: .18in; }
+.parts-strip { position: absolute; left: .48in; right: .48in; bottom: .42in; min-height: .92in; border-top: 4px solid #111; padding-top: .12in; display: grid; grid-template-columns: repeat(6,1fr); gap: .1in; }
+.part { border: 2px solid #111; border-radius: 8px; padding: .07in; min-height: .62in; font-size: 12px; font-weight: 800; background: #fff; }
+.callout { border-left: 8px solid #d71920; padding: .12in .16in; background: #fff3f3; font-weight: 800; }
+.arrow { font-size: 54px; font-weight: 900; text-align: center; }
+.checklist div { border-bottom: 2px solid #ddd; padding: .12in 0; font-weight: 800; }
+.badge { display: inline-block; border: 3px solid #111; border-radius: 999px; padding: .06in .14in; font-weight: 900; margin-right: .08in; background: #fff; }
+.stage-title { font-size: 82px; font-weight: 900; margin-top: 1.4in; }
+</style>
+</head>
+<body>
+<section class="page">
+<div class="bar"></div><div class="brand">LowPoly Fabrication Toolkit</div><div class="code">KIT-000</div>
+<h1>{{PROJECT_TITLE}}</h1>
+<p class="muted" style="font-size:24px;font-weight:800;">Printable panel fabrication assembly manual</p>
+<div class="hero">DROP MODEL / COVER RENDER HERE</div>
+<div style="margin-top:.18in;"><span class="badge">Difficulty: {{DIFFICULTY}}</span><span class="badge">Parts: {{PART_COUNT}}</span><span class="badge">Material: {{MATERIAL}}</span></div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Before You Start</div><div class="code">00</div>
+<h2>Tools, Scale, Safety</h2>
+<div class="grid cols3">
+<div class="card yellow"><h3>Tools</h3><p>Laser/CNC, glue, magnets, ruler, sandpaper.</p></div>
+<div class="card"><h3>Scale Check</h3><p>Print/import at 100%. Verify one known dimension before cutting.</p></div>
+<div class="card red"><h3>Safety</h3><p>Wear eye protection. Test-cut scrap first.</p></div>
+</div>
+<h2>Cut Settings</h2>
+<div class="grid cols4">
+<div class="card">Thickness<br><b>{{THICKNESS}}</b></div><div class="card">Kerf<br><b>{{KERF}}</b></div><div class="card">Clearance<br><b>{{CLEARANCE}}</b></div><div class="card">Sheet<br><b>{{SHEET_SIZE}}</b></div>
+</div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Parts Inventory</div><div class="code">01</div>
+<h2>Sort Parts Before Assembly</h2>
+<div class="grid cols4">
+<div class="card"><div class="small-diagram">SVG PART</div><b>FACE_01</b><br>Qty 1</div>
+<div class="card"><div class="small-diagram">SVG PART</div><b>FACE_02</b><br>Qty 1</div>
+<div class="card"><div class="small-diagram">SVG PART</div><b>CONN_01</b><br>Qty 2</div>
+<div class="card"><div class="small-diagram">SVG PART</div><b>SUPPORT_01</b><br>Qty 1</div>
+</div>
+<div class="callout" style="margin-top:.25in;">Duplicate this page for long inventories.</div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Stage Divider</div><div class="code">STAGE</div>
+<div class="stage-title">STAGE {{STAGE_NUMBER}}</div>
+<h2>{{STAGE_TITLE}}</h2>
+<div class="grid cols2">
+<div class="card blue"><h3>Goal</h3><p>{{STAGE_GOAL}}</p></div>
+<div class="card"><h3>Parts Needed</h3><p>{{PARTS_NEEDED}}</p></div>
+</div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Step Template</div><div class="code">STEP</div>
+<div class="step-head"><div class="step-num">{{N}}</div><h2>{{STEP_TITLE}}</h2></div>
+<div class="diagram">DROP STEP DIAGRAM SVG HERE</div>
+<div class="parts-strip"><div class="part">FACE_01<br>Qty 1</div><div class="part">CONN_01<br>Qty 2</div><div class="part">MAGNET<br>Qty 2</div></div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Detailed Step</div><div class="code">DETAIL</div>
+<div class="step-head"><div class="step-num">{{N}}</div><h2>Before / After</h2></div>
+<div class="grid cols3"><div class="diagram">BEFORE SVG</div><div class="arrow">→</div><div class="diagram">AFTER SVG</div></div>
+<div class="callout">Use this page for trim direction, edge numbers, or alignment marks.</div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Connectors</div><div class="code">MAG</div>
+<h2>Magnets / Glue / Screws</h2>
+<div class="grid cols2"><div class="diagram">CONNECTOR DETAIL SVG</div><div><div class="card yellow"><h3>Polarity</h3><p>Mark magnet polarity before glue.</p></div><div class="card"><h3>Fit</h3><p>Dry-fit holes. Do not force magnets into tight pockets.</p></div></div></div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Supports</div><div class="code">RIB</div>
+<h2>Internal Ribs / Frames</h2>
+<div class="diagram">DROP SUPPORT STAGE SVG HERE</div>
+<div class="callout">Install supports after the shell holds its shape, before closing removable panels.</div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Door / Hatch</div><div class="code">DOOR</div>
+<h2>Door or Removable Panel</h2>
+<div class="grid cols2"><div class="diagram">HINGE SIDE / MAGNET SIDE SVG</div><div class="checklist card"><div>□ Check hinge side</div><div>□ Check magnet polarity</div><div>□ Check perimeter clearance</div><div>□ Open / close test</div></div></div>
+</section>
+<section class="page">
+<div class="bar"></div><div class="brand">Final Check</div><div class="code">END</div>
+<h2>Inspection Checklist</h2>
+<div class="grid cols2"><div class="checklist card"><div>□ All panels seated</div><div>□ Magnets aligned</div><div>□ No forced joints</div><div>□ Door/removable panel works</div><div>□ Surface cleaned</div></div><div class="card"><h3>Included Files</h3><p>template.pdf<br>layout.svg<br>layout.dxf<br>BOM.csv<br>assembly_guide.html<br>stage diagrams</p></div></div>
+</section>
+</body>
+</html>
