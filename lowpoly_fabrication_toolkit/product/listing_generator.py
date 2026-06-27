@@ -44,19 +44,7 @@ def assembly_guide_html(title: str, panels, issues_count: int = 0) -> str:
     materials = sorted({p.material for p in panels})
     part_cards = "\n".join(_part_card(i + 1, panel) for i, panel in enumerate(panels[:80]))
     overflow = f"<p class='muted'>+ {len(panels) - 80} more parts in the SVG/DXF layout.</p>" if len(panels) > 80 else ""
-    steps = [
-        ("Inspect files", "Open template.pdf and layout.svg. Confirm material thickness, kerf, and scale before cutting."),
-        ("Cut panels", "Cut red outlines first. Keep labels on the sheet until assembly is finished."),
-        ("Cut holes", "Cut or drill blue hole marks. Magnets and screws should be dry-fitted before glue."),
-        ("Sort parts", "Group FACE panels, CONNECTOR parts, and SUPPORT ribs into separate piles."),
-        ("Dry-fit shell", "Assemble matching edges without glue. Fix tight spots with light sanding."),
-        ("Install connectors", "Glue or screw internal connectors, then add magnets with polarity marks aligned."),
-        ("Final assembly", "Glue structural panels, install removable panels last, and re-check clearances."),
-    ]
-    step_cards = "\n".join(
-        f"<section class='step'><div class='num'>{i}</div><div><h3>{escape(name)}</h3><p>{escape(body)}</p></div></section>"
-        for i, (name, body) in enumerate(steps, 1)
-    )
+    stage_cards = "\n".join(_stage_card(i + 1, stage) for i, stage in enumerate(_assembly_stages(panels)))
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -72,11 +60,14 @@ h3 {{ margin: 0 0 4px; font-size: 15px; }}
 .meta {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 24px; }}
 .box, .step, .part {{ border: 1px solid #bbb; border-radius: 6px; padding: 10px; break-inside: avoid; }}
 .box b {{ display: block; font-size: 11px; text-transform: uppercase; color: #666; }}
-.steps {{ display: grid; gap: 10px; }}
+.steps, .stage-steps {{ display: grid; gap: 10px; }}
 .step {{ display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; }}
 .num {{ width: 28px; height: 28px; border-radius: 50%; background: #111; color: white; display: grid; place-items: center; font-weight: bold; }}
 .parts {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }}
 .part svg {{ width: 100%; height: 120px; background: #fafafa; border: 1px solid #eee; }}
+.stage {{ page-break-before: always; }}
+.parts-list {{ columns: 2; margin: 8px 0 0; padding-left: 18px; }}
+.callout {{ background: #f7f7f7; border-left: 5px solid #111; padding: 10px; margin: 10px 0; }}
 .muted {{ color: #666; }}
 .warn {{ border-left: 5px solid #d97706; padding-left: 10px; }}
 @media print {{ .part, .step {{ page-break-inside: avoid; }} }}
@@ -95,8 +86,8 @@ h3 {{ margin: 0 0 4px; font-size: 15px; }}
 </section>
 <h2>Before Cutting</h2>
 <div class="box warn">Print or import at 100% scale. Verify one known dimension before cutting expensive material.</div>
-<h2>Assembly Steps</h2>
-<div class="steps">{step_cards}</div>
+<h2>Assembly Stages</h2>
+{stage_cards}
 <h2>Parts Map</h2>
 <div class="parts">{part_cards}</div>
 {overflow}
@@ -122,6 +113,75 @@ def _part_card(index: int, panel) -> str:
 {holes}
 </svg>
 </article>"""
+
+
+def _assembly_stages(panels) -> list[dict]:
+    faces = [p for p in panels if p.panel_id.startswith("FACE_")]
+    connectors = [p for p in panels if p.panel_id.startswith("CONN_")]
+    supports = [p for p in panels if p.panel_id.startswith("SUPPORT_")]
+    magnet_parts = [p for p in panels if any(h.get("layer") == "MAGNETS" for h in p.holes)]
+    return [
+        {
+            "title": "Cut and Sort",
+            "parts": panels,
+            "steps": [
+                "Cut every red outline from layout.svg or template.pdf.",
+                "Keep labels visible until final assembly.",
+                "Sort pieces into FACE, CONNECTOR, SUPPORT, and MAGNET groups.",
+            ],
+        },
+        {
+            "title": "Build Main Shell",
+            "parts": faces,
+            "steps": [
+                "Dry-fit FACE panels first without glue.",
+                "Check that each neighboring edge closes cleanly.",
+                "Sand tight edges lightly instead of forcing the panel.",
+            ],
+        },
+        {
+            "title": "Install Connectors",
+            "parts": connectors,
+            "steps": [
+                "Attach connector strips on the inside face of the shell.",
+                "Use glue for glue connectors or screws/rivets for mechanical connectors.",
+                "Keep connector faces flush so removable panels still seat correctly.",
+            ],
+        },
+        {
+            "title": "Add Supports",
+            "parts": supports,
+            "steps": [
+                "Install ribs and frames after the shell holds its shape.",
+                "Do not glue removable access panels to support ribs.",
+                "Check long panels for flex before closing the model.",
+            ],
+        },
+        {
+            "title": "Doors, Magnets, and Final Check",
+            "parts": magnet_parts,
+            "steps": [
+                "Dry-fit magnets and mark polarity before glue.",
+                "Install matching magnet pairs on panel and connector side.",
+                "Close the model and verify clearance around every door or removable panel.",
+            ],
+        },
+    ]
+
+
+def _stage_card(index: int, stage: dict) -> str:
+    parts = stage["parts"]
+    part_names = "".join(f"<li>{escape(p.panel_id)}</li>" for p in parts[:30])
+    more = f"<li>+ {len(parts) - 30} more</li>" if len(parts) > 30 else ""
+    steps = "".join(
+        f"<section class='step'><div class='num'>{i}</div><div><p>{escape(step)}</p></div></section>"
+        for i, step in enumerate(stage["steps"], 1)
+    )
+    return f"""<section class="stage">
+<h2>Stage {index}: {escape(stage["title"])}</h2>
+<div class="callout"><b>Parts in this stage:</b><ul class="parts-list">{part_names}{more}</ul></div>
+<div class="stage-steps">{steps}</div>
+</section>"""
 
 
 def _hole_svg(hole: dict, ox: float, oy: float) -> str:
