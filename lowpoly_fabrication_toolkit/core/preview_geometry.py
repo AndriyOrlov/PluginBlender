@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 
+from math import cos, pi, sin
+
+
 def get_collection(bpy, name: str):
     coll = bpy.data.collections.get(name) or bpy.data.collections.new(name)
     if coll.name not in bpy.context.scene.collection.children.keys():
@@ -46,4 +49,30 @@ def create_layout_preview(bpy, panels, preview_scale: float = 0.01):
         obj = bpy.data.objects.new(panel.panel_id, mesh)
         coll.objects.link(obj)
         objects.append(obj)
+        for i, hole in enumerate(panel.holes):
+            hole_obj = _hole_preview_object(bpy, panel.panel_id, i, hole, preview_scale)
+            if hole_obj:
+                coll.objects.link(hole_obj)
+                objects.append(hole_obj)
     return objects
+
+
+def _hole_preview_object(bpy, panel_id: str, index: int, hole: dict, scale: float):
+    if hole.get("type") == "CIRCLE":
+        cx = hole["x"] * scale
+        cy = hole["y"] * scale
+        radius = hole["r"] * scale
+        verts = [(cx + cos(i * pi / 12) * radius, cy + sin(i * pi / 12) * radius, 0.0) for i in range(24)]
+    elif hole.get("type") == "RECTANGLE":
+        x = hole["x"] * scale
+        y = hole["y"] * scale
+        w = hole["w"] * scale
+        h = hole["h"] * scale
+        verts = [(x, y, 0.0), (x + w, y, 0.0), (x + w, y + h, 0.0), (x, y + h, 0.0)]
+    else:
+        return None
+    edges = [(i, (i + 1) % len(verts)) for i in range(len(verts))]
+    mesh = bpy.data.meshes.new(f"{panel_id}_HOLE_{index}_mesh")
+    mesh.from_pydata(verts, edges, [])
+    mesh.update()
+    return bpy.data.objects.new(f"{panel_id}_HOLE_{index}", mesh)
