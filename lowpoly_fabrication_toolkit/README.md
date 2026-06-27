@@ -26,6 +26,7 @@ Exports are written to `//lft_output` by default:
 
 - `layout.svg`
 - `layout.dxf`
+- `template.pdf`
 - `BOM.csv`
 - `project.json`
 - `product_pack.zip`

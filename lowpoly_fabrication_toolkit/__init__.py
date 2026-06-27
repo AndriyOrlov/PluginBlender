@@ -19,7 +19,7 @@ from bpy.props import BoolProperty, EnumProperty, FloatProperty, PointerProperty
 from bpy.types import Operator, PropertyGroup
 
 from .core.connectors import connector_panels
-from .core.exporters import export_bom_csv, export_dxf, export_project_json, export_svg
+from .core.exporters import export_bom_csv, export_dxf, export_pdf, export_project_json, export_svg
 from .core.fabrication_data import (
     ConnectorData,
     EdgeFabricationData,
@@ -316,6 +316,7 @@ class LFT_OT_export_layout(Operator):
             out.mkdir(parents=True, exist_ok=True)
             export_svg(out / "layout.svg", panels, sheet.width, layout_height(panels, sheet))
             export_dxf(out / "layout.dxf", panels)
+            export_pdf(out / "template.pdf", panels, sheet.width, layout_height(panels, sheet))
             export_bom_csv(out / "BOM.csv", panels)
             export_project_json(out / "project.json", state, panels)
             create_layout_preview(bpy, panels)
@@ -421,7 +422,7 @@ class LFT_OT_product_pack(Operator):
             settings = context.scene.lft_settings
             out = Path(bpy.path.abspath(settings.output_dir))
             out.mkdir(parents=True, exist_ok=True)
-            files = [out / "layout.svg", out / "layout.dxf", out / "BOM.csv", out / "project.json"]
+            files = [out / "template.pdf", out / "layout.svg", out / "layout.dxf", out / "BOM.csv", out / "project.json"]
             files += render_placeholder_files(out)
             pack_settings = ProductPackSettings(title=settings.pack_title)
             listing_path = out / "listing.json"
