@@ -8,6 +8,7 @@ class LFT_PT_validate(LFTPanel, bpy.types.Panel):
 
     def draw(self, context):
         s = context.scene.lft_settings
+        self.layout.operator("lft.clean_mesh")
         self.layout.operator("lft.analyze_mesh")
         self.layout.operator("lft.validate")
         self.layout.label(text=s.validator_summary or "No validation run")

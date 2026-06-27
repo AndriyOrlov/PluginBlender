@@ -163,6 +163,32 @@ class LFT_OT_analyze(Operator):
         return {"FINISHED"}
 
 
+class LFT_OT_clean_mesh(Operator):
+    bl_idname = "lft.clean_mesh"
+    bl_label = "Clean Mesh"
+
+    def execute(self, context):
+        try:
+            obj = active_mesh_object(bpy)
+            ensure_object_mode(bpy)
+            bpy.ops.object.select_all(action="DESELECT")
+            obj.select_set(True)
+            context.view_layer.objects.active = obj
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_all(action="SELECT")
+            bpy.ops.mesh.remove_doubles(threshold=0.0001)
+            bpy.ops.mesh.normals_make_consistent(inside=False)
+            bpy.ops.object.mode_set(mode="OBJECT")
+            obj.data.validate(clean_customdata=False)
+            obj.data.update()
+            self.report({"INFO"}, "Mesh cleaned")
+        except Exception as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+        return {"FINISHED"}
+
+
 class LFT_OT_assign_face_type(Operator):
     bl_idname = "lft.assign_face_type"
     bl_label = "Assign Face Type"
@@ -428,6 +454,7 @@ from .ui.panel_pack import LFT_PT_pack
 classes = (
     LFT_Settings,
     LFT_OT_analyze,
+    LFT_OT_clean_mesh,
     LFT_OT_assign_face_type,
     LFT_OT_assign_edge_data,
     LFT_OT_add_hole,
