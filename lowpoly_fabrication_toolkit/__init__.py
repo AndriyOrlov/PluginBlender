@@ -447,8 +447,6 @@ class LFT_OT_product_pack(Operator):
             panels = build_panels(obj, load_state(obj), settings.unit_scale_mm) if obj else []
             issues = json.loads(obj.get("lft_validator_issues", "[]")) if obj else []
             pack_settings = ProductPackSettings(title=settings.pack_title)
-            listing_path = out / "listing.json"
-            listing_path.write_text(json.dumps(listing(pack_settings, [settings.material_profile], [p.name for p in files]), indent=2), encoding="utf-8")
             guide = out / "assembly_guide.txt"
             guide.write_text(assembly_guide(settings.pack_title, panels, len(issues)), encoding="utf-8")
             guide_html = out / "assembly_guide.html"
@@ -457,7 +455,9 @@ class LFT_OT_product_pack(Operator):
             readme.write_text("LowPoly Fabrication Toolkit export. Cut red outlines, engrave labels, dry-fit before glue.\n", encoding="utf-8")
             license_file = out / "license.txt"
             license_file.write_text("Add your license terms here.\n", encoding="utf-8")
+            listing_path = out / "listing.json"
             files += [listing_path, guide, guide_html, readme, license_file]
+            listing_path.write_text(json.dumps(listing(pack_settings, [settings.material_profile], [p.name for p in files]), indent=2), encoding="utf-8")
             build_zip(out / "product_pack.zip", files)
             self.report({"INFO"}, f"Product pack: {out / 'product_pack.zip'}")
         except Exception as exc:

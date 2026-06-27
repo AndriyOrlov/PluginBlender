@@ -65,6 +65,7 @@ h3 {{ margin: 0 0 4px; font-size: 15px; }}
 .num {{ width: 28px; height: 28px; border-radius: 50%; background: #111; color: white; display: grid; place-items: center; font-weight: bold; }}
 .parts {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }}
 .part svg {{ width: 100%; height: 120px; background: #fafafa; border: 1px solid #eee; }}
+.stage-map {{ width: 100%; max-height: 220px; background: #fafafa; border: 1px solid #ddd; margin-bottom: 10px; }}
 .stage {{ page-break-before: always; }}
 .parts-list {{ columns: 2; margin: 8px 0 0; padding-left: 18px; }}
 .callout {{ background: #f7f7f7; border-left: 5px solid #111; padding: 10px; margin: 10px 0; }}
@@ -179,9 +180,48 @@ def _stage_card(index: int, stage: dict) -> str:
     )
     return f"""<section class="stage">
 <h2>Stage {index}: {escape(stage["title"])}</h2>
+{_stage_preview_svg(parts)}
 <div class="callout"><b>Parts in this stage:</b><ul class="parts-list">{part_names}{more}</ul></div>
 <div class="stage-steps">{steps}</div>
 </section>"""
+
+
+def _stage_preview_svg(parts) -> str:
+    shown = parts[:12]
+    if not shown:
+        return '<div class="callout">No generated parts in this stage.</div>'
+    cells = []
+    cell_w = 90
+    cell_h = 70
+    for i, panel in enumerate(shown):
+        col = i % 4
+        row = i // 4
+        ox = col * cell_w + 8
+        oy = row * cell_h + 8
+        cells.append(_mini_panel_svg(panel, ox, oy, cell_w - 16, cell_h - 24))
+        cells.append(f'<text x="{ox}" y="{oy + cell_h - 8}" font-size="6">{escape(panel.panel_id)}</text>')
+    rows = (len(shown) + 3) // 4
+    more = f'<text x="8" y="{rows * cell_h + 8}" font-size="7">+ {len(parts) - len(shown)} more parts</text>' if len(parts) > len(shown) else ""
+    return f'<svg class="stage-map" viewBox="0 0 360 {rows * cell_h + (18 if more else 0)}" xmlns="http://www.w3.org/2000/svg">{"".join(cells)}{more}</svg>'
+
+
+def _mini_panel_svg(panel, ox: float, oy: float, max_w: float, max_h: float) -> str:
+    min_x, min_y, max_x, max_y = polygon_bounds(panel.points)
+    w = max(max_x - min_x, 1)
+    h = max(max_y - min_y, 1)
+    scale = min(max_w / w, max_h / h)
+    points = " ".join(f"{ox + (x - min_x) * scale:.2f},{oy + (y - min_y) * scale:.2f}" for x, y in panel.points)
+    holes = []
+    for hole in panel.holes[:8]:
+        if hole.get("type") == "CIRCLE":
+            holes.append(
+                f'<circle cx="{ox + (hole["x"] - min_x) * scale:.2f}" cy="{oy + (hole["y"] - min_y) * scale:.2f}" r="{hole["r"] * scale:.2f}" fill="none" stroke="#06c" stroke-width="0.5"/>'
+            )
+        elif hole.get("type") == "RECTANGLE":
+            holes.append(
+                f'<rect x="{ox + (hole["x"] - min_x) * scale:.2f}" y="{oy + (hole["y"] - min_y) * scale:.2f}" width="{hole["w"] * scale:.2f}" height="{hole["h"] * scale:.2f}" fill="none" stroke="#06c" stroke-width="0.5"/>'
+            )
+    return f'<polygon points="{points}" fill="none" stroke="#d00" stroke-width="0.8"/>{"".join(holes)}'
 
 
 def _hole_svg(hole: dict, ox: float, oy: float) -> str:
