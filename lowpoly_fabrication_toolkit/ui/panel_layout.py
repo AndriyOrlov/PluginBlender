@@ -10,3 +10,5 @@ class LFT_PT_layout(LFTPanel, bpy.types.Panel):
         s = context.scene.lft_settings
         self.layout.prop(s, "output_dir")
         self.layout.operator("lft.export_layout")
+        self.layout.prop(s, "project_json_path")
+        self.layout.operator("lft.load_project_json")

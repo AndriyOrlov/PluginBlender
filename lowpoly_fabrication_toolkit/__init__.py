@@ -137,6 +137,7 @@ class LFT_Settings(PropertyGroup):
     hole_width: FloatProperty(name="Width", default=12, min=0.1)
     hole_height: FloatProperty(name="Height", default=6, min=0.1)
     output_dir: StringProperty(name="Output Dir", subtype="DIR_PATH", default="//lft_output")
+    project_json_path: StringProperty(name="Project JSON", subtype="FILE_PATH")
     tripo_api_key: StringProperty(name="API Key", subtype="PASSWORD")
     tripo_endpoint: StringProperty(name="Endpoint", default="https://api.tripo3d.ai")
     tripo_prompt: StringProperty(name="Prompt", default="a low-poly wolf head sculpture")
@@ -323,6 +324,26 @@ class LFT_OT_validate(Operator):
         return {"FINISHED"}
 
 
+class LFT_OT_load_project_json(Operator):
+    bl_idname = "lft.load_project_json"
+    bl_label = "Load Project JSON"
+
+    def execute(self, context):
+        try:
+            obj = active_mesh_object(bpy)
+            path = Path(bpy.path.abspath(context.scene.lft_settings.project_json_path))
+            data = json.loads(path.read_text(encoding="utf-8"))
+            state = data.get("state", data)
+            if not isinstance(state, dict):
+                raise ValueError("Project JSON does not contain a state object.")
+            save_state(obj, state)
+            self.report({"INFO"}, f"Loaded project state from {path}")
+        except Exception as exc:
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
+        return {"FINISHED"}
+
+
 class LFT_OT_optimize_prompt(Operator):
     bl_idname = "lft.optimize_prompt"
     bl_label = "Optimize Prompt"
@@ -413,6 +434,7 @@ classes = (
     LFT_OT_preview,
     LFT_OT_export_layout,
     LFT_OT_validate,
+    LFT_OT_load_project_json,
     LFT_OT_optimize_prompt,
     LFT_OT_test_tripo,
     LFT_OT_import_generated,
